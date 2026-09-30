@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mash Todo List — tests</title>
+<style>
+  body { font: 14px/1.5 ui-monospace, Consolas, monospace; background: #0e1116; color: #e7ecf3; padding: 24px; }
+  h1 { font-size: 18px; }
+  #summary { font-size: 16px; font-weight: 700; padding: 10px 14px; border-radius: 8px; margin: 12px 0; }
+  #summary.pass { background: #16351f; color: #7fd1a6; }
+  #summary.fail { background: #3a1a1a; color: #ff7a7a; }
+  li { list-style: none; padding: 2px 0; }
+  li.pass::before { content: "PASS "; color: #7fd1a6; }
+  li.fail::before { content: "FAIL "; color: #ff7a7a; }
+  li.fail { color: #ffb4b4; }
+  .why { color: #93a1b5; }
+</style>
+</head>
+<body>
+<h1>Mash Todo List — engine tests</h1>
+<p class="why">Runs store.js, nlp.js and ai.js in this browser. Open it directly or via a static server.</p>
+<div id="summary">running…</div>
+<ul id="results"></ul>
+<pre id="dump" hidden></pre>
+
+<script src="store.js"></script>
+<script src="nlp.js"></script>
+<script src="ai.js"></script>
+<script src="tests.js"></script>
+</body>
+</html>
