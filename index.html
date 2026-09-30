@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mash Todo List — a todo list with an assistant</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0e1116" />
+<meta name="description" content="A todo list with an AI assistant that can actually edit it. Runs offline in your browser." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#quick-add">Skip to task input</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">✅</span>
+    <div>
+      <h1>Mash&nbsp;Todo&nbsp;List</h1>
+      <p class="brand-sub">A todo list with an assistant that can actually edit it.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" id="btn-shortcuts" class="btn btn-ghost" aria-expanded="false" aria-controls="shortcut-help">
+      <span aria-hidden="true">⌨</span> Shortcuts
+    </button>
+    <button type="button" id="btn-export" class="btn btn-ghost">Export</button>
+    <button type="button" id="btn-import" class="btn btn-ghost">Import</button>
+    <button type="button" id="btn-settings" class="btn btn-primary" aria-haspopup="dialog">
+      <span aria-hidden="true">⚙</span> AI settings
+    </button>
+    <input type="file" id="file-import" accept="application/json,.json" hidden />
+  </div>
+</header>
+
+<main class="layout">
+  <!-- Left column: the todo list -->
+  <section class="panel" aria-labelledby="tasks-heading">
+    <h2 id="tasks-heading" class="visually-hidden">Your tasks</h2>
+
+    <form id="quick-add-form" class="quick-add" autocomplete="off">
+      <label class="visually-hidden" for="quick-add">Add a task</label>
+      <input id="quick-add" name="title" type="text" placeholder="Add a task — try: Call mom tomorrow !! #family" />
+      <button class="btn btn-primary" type="submit">Add</button>
+    </form>
+    <p class="hint" id="quick-add-hint">
+      Smart input: <code>tomorrow</code>, <code>fri 9am</code>, <code>in 3 days</code>,
+      <code>!!</code> high / <code>!</code> medium priority, <code>#tag</code>, <code>every week</code>.
+    </p>
+
+    <div class="toolbar">
+      <div class="filters" role="group" aria-label="Filter tasks">
+        <button type="button" class="chip is-active" data-filter="all">All <span class="count" data-count="all">0</span></button>
+        <button type="button" class="chip" data-filter="active">Active <span class="count" data-count="active">0</span></button>
+        <button type="button" class="chip" data-filter="done">Done <span class="count" data-count="done">0</span></button>
+        <button type="button" class="chip" data-filter="today">Today <span class="count" data-count="today">0</span></button>
+      </div>
+      <div class="toolbar-right">
+        <label class="visually-hidden" for="search">Search tasks</label>
+        <input id="search" type="search" placeholder="Search…" />
+        <label class="visually-hidden" for="sort">Sort tasks</label>
+        <select id="sort">
+          <option value="smart">Sort: smart</option>
+          <option value="due">Sort: due date</option>
+          <option value="priority">Sort: priority</option>
+          <option value="created">Sort: newest</option>
+          <option value="title">Sort: A–Z</option>
+        </select>
+      </div>
+    </div>
+
+    <section id="shortcut-help" class="shortcuts" hidden aria-label="Keyboard shortcuts">
+      <h3>Keyboard shortcuts</h3>
+      <dl>
+        <div><dt>j</dt><dd>select the next task</dd></div>
+        <div><dt>k</dt><dd>select the previous task</dd></div>
+        <div><dt>x</dt><dd>complete / reopen the selected task</dd></div>
+        <div><dt>e</dt><dd>edit the selected task</dd></div>
+        <div><dt>Del</dt><dd>delete the selected task</dd></div>
+        <div><dt>n</dt><dd>jump to the add box</dd></div>
+        <div><dt>Esc</dt><dd>cancel selection or editing</dd></div>
+        <div><dt>?</dt><dd>show or hide this panel</dd></div>
+      </dl>
+      <p class="small muted">Shortcuts stay out of the way while you are typing. Press <kbd>?</kbd> or the button above to hide this list.</p>
+    </section>
+
+    <ul id="task-list" class="tasks" aria-live="polite"></ul>
+    <p id="empty-state" class="empty" hidden></p>
+
+    <footer class="panel-footer">
+      <span id="items-left" class="muted">0 tasks</span>
+      <span class="footer-actions">
+        <button type="button" id="btn-undo" class="btn btn-ghost" disabled>Undo</button>
+        <button type="button" id="btn-clear-done" class="btn btn-ghost">Clear completed</button>
+      </span>
+    </footer>
+  </section>
+
+  <!-- Right column: the AI assistant -->
+  <section class="panel panel-ai" aria-labelledby="ai-heading">
+    <div class="ai-head">
+      <h2 id="ai-heading"><span aria-hidden="true">🤖</span> Assistant</h2>
+      <span id="ai-status" class="badge" data-mode="local">Local mode</span>
+    </div>
+
+    <div class="ai-prompts" role="group" aria-label="Suggested prompts">
+      <button type="button" class="chip" data-prompt="Plan my day and put the most important thing first.">Plan my day</button>
+      <button type="button" class="chip" data-prompt="What should I do first right now?">What first?</button>
+      <button type="button" class="chip" data-prompt="Add a task to review the quarterly budget by Friday, high priority, tag work">Add via chat</button>
+      <button type="button" class="chip" data-prompt="Clean up my list: remove finished and duplicate tasks and merge similar ones.">Clean up</button>
+    </div>
+
+    <div id="chat-log" class="chat" role="log" aria-live="polite" aria-label="Assistant conversation">
+      <div class="msg msg-assistant">
+        <div class="msg-body">
+          <p>Hi! I can add, edit, complete, reschedule and prioritize tasks for you — just describe what you want.</p>
+          <p class="muted small">I'm in <strong>local mode</strong> right now: everything runs in your browser with no API key.
+            Open <em>AI settings</em> to connect a model for free-form conversation.</p>
+        </div>
+      </div>
+    </div>
+
+    <form id="chat-form" class="chat-form">
+      <label class="visually-hidden" for="chat-input">Message the assistant</label>
+      <textarea id="chat-input" rows="2" placeholder="e.g. Move everything due today to tomorrow"></textarea>
+      <div class="chat-form-row">
+        <span class="muted small">Enter to send · Shift+Enter for a new line</span>
+        <button type="submit" class="btn btn-primary" id="btn-send">Send</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<!-- Settings modal -->
+<div class="modal" id="settings-modal" hidden>
+  <div class="modal-backdrop" data-close="settings-modal"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <h2 id="settings-title">AI settings</h2>
+    <p class="muted small">
+      Any OpenAI-compatible endpoint works. The key is stored in this browser's
+      <code>localStorage</code> and sent only to the endpoint you choose. Leave it
+      empty to stay in local mode (no network calls at all).
+    </p>
+    <form id="settings-form">
+      <label for="provider">Provider</label>
+      <select id="provider">
+        <option value="local">Local mode (no network)</option>
+        <option value="openai">OpenAI</option>
+        <option value="openrouter">OpenRouter</option>
+        <option value="groq">Groq</option>
+        <option value="ollama">Ollama (local server)</option>
+        <option value="custom">Custom…</option>
+      </select>
+
+      <label for="base-url">Base URL</label>
+      <input id="base-url" type="url" placeholder="https://api.openai.com/v1" />
+
+      <label for="model">Model</label>
+      <input id="model" type="text" placeholder="gpt-4o-mini" />
+
+      <label for="api-key">API key <span class="muted small">(blank = local mode)</span></label>
+      <input id="api-key" type="password" placeholder="sk-…" autocomplete="off" />
+
+      <label class="checkbox">
+        <input type="checkbox" id="auto-apply" />
+        Apply assistant changes without asking
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-test" class="btn btn-ghost">Test connection</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-ghost" data-close="settings-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+      <p id="settings-status" class="small" role="status"></p>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="store.js"></script>
+<script src="nlp.js"></script>
+<script src="ai.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
+
