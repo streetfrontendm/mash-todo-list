@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mash Todo List — UI tests</title>
+<style>
+  body { font: 14px/1.5 ui-monospace, Consolas, monospace; background: #0e1116; color: #e7ecf3; padding: 24px; }
+  h1 { font-size: 18px; }
+  #summary { font-size: 16px; font-weight: 700; padding: 10px 14px; border-radius: 8px; margin: 12px 0; }
+  #summary.pass { background: #16351f; color: #7fd1a6; }
+  #summary.fail { background: #3a1a1a; color: #ff7a7a; }
+  ul { padding: 0; }
+  li { list-style: none; padding: 2px 0; }
+  li.pass::before { content: "PASS "; color: #7fd1a6; }
+  li.fail::before { content: "FAIL "; color: #ff7a7a; }
+  li.fail { color: #ffb4b4; }
+  .why { color: #93a1b5; }
+  #app { width: 1100px; height: 720px; border: 1px solid #2a323f; border-radius: 8px; background: #0e1116; }
+</style>
+</head>
+<body>
+<h1>Mash Todo List — UI integration tests</h1>
+<p class="why">
+  Drives <code>index.html</code> inside the iframe below with real DOM events.
+  Same-origin access to the iframe is required, so run this from a local server:
+  <code>powershell -ExecutionPolicy Bypass -File serve.ps1</code> then open
+  <code>http://localhost:8080/uitest.html</code>.
+  Your saved tasks and AI settings are snapshotted and restored afterwards.
+</p>
+<div id="summary">running…</div>
+<ul id="results"></ul>
+<iframe id="app" src="index.html" title="Mash Todo List under test"></iframe>
+<pre id="dump" hidden></pre>
+
+<script src="uitest.js"></script>
+</body>
+</html>
