@@ -1,0 +1,7 @@
+# Mash Todo List — static site, no build step, no dependencies.
+# Nothing to ignore for the app itself; these cover OS / editor noise
+# in case the folder is ever opened in an editor.
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
